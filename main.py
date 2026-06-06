@@ -1,86 +1,82 @@
-from requests import get
+from requests import Session
 from colorama import Fore, Style, init
-import os
-import time
+import threading
+from queue import Queue
+
+init()
 
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0"
+    "User-Agent": "Mozilla/5.0",
+    "Connection": "close"
 }
-try: 
-    init()
 
-    good_list = []
+session = Session()
+session.headers.update(headers)
 
-    # -------- banner --------
-    banner = r"""
-        ___      _           _         ______ _           _           
-    / _ \ ___| |__   ___ | |_ ___  |  ____(_)_ __   __| | ___ _ __ 
-    | | | / __| '_ \ / _ \| __/ _ \ | |__  | | '_ \ / _` |/ _ \ '__|
-    | |_| \__ \ | | | (_) | ||  __/ |  __| | | | | | (_| |  __/ |   
-    \___/|___/_| |_|\___/ \__\___| |_|    |_|_| |_|\__,_|\___|_|   
-
-                    ADMIN PAGE FINDER
-    """
-
-    print(Fore.CYAN + banner + Style.RESET_ALL)
-    time.sleep(5)
-    os.system('cls' if os.name == 'nt' else 'clear')
-    # ------------------------
-
-    target_url = input('enter target url : ')
-    target_url += '/' if not target_url.endswith('/') else ''
-
-    paths_file = open('wordlist.txt', 'r', encoding='UTF-8')
-    paths = paths_file.readlines()
-    paths_file.close()
-
-    clean_paths = []
-
-    for line in paths:
-        if line.strip() == '' or line.startswith('#'):
-            continue
-
-        line = line.strip().lstrip('/')
-        clean_paths.append(line)
+good_list = []
+lock = threading.Lock()
+q = Queue()
 
 
-    for path in clean_paths:
-        url = target_url + path
+def check_url(url):
+    try:
+        req = session.get(url, timeout=8)
+        status = req.status_code
 
-        try:
-            req = get(url, timeout=8,headers=headers)
-            status_code = req.status_code
-
-            if status_code == 200:
-                print(Fore.GREEN + f'tested url {url} and the status code is {status_code}')
+        if status == 200:
+            print(Fore.GREEN + f"[200] {url}")
+            with lock:
                 good_list.append(url)
-            else:
-                print(Fore.RED + f'tested url {url} and the status code is {status_code}')
+        else:
+            print(Fore.RED + f"[{status}] {url}")
 
-        except Exception as e:
-            print(Fore.YELLOW + f'error for {url} : {e}')
-
-
-    print(Style.RESET_ALL)
-
-    if len(good_list) > 0:
-        print(Fore.GREEN + f'\n[+] Found {len(good_list)} possible admin page(s):\n')
-
-        for url in good_list:
-            print(Fore.GREEN + f'[+] {url}')
-
-        # save to file
-        with open('./goods.txt', 'w', encoding='utf-8') as f:
-            for url in good_list:
-                f.write(url + '\n')
-
-        print(Fore.CYAN + '\n[+] All good URLs saved to ./goods.txt')
-
-    else:
-        print(Fore.RED + '\n[-] We couldn`t find any admin pages.')
-
-    input('\npress any key to exit')
+    except Exception as e:
+        print(Fore.YELLOW + f"[ERR] {url} : {e}")
 
 
-except KeyboardInterrupt:
-    print(Fore.RED + 'the Application Stopped by the user .')
+def worker():
+    while True:
+        url = q.get()
+        if url is None:
+            break
+        check_url(url)
+        q.task_done()
+
+
+banner = r"""
+ADMIN FINDER
+"""
+print(banner)
+
+target_url = input("target url: ")
+if not target_url.endswith("/"):
+    target_url += "/"
+
+with open("wordlist.txt", "r", encoding="utf-8") as f:
+    paths = f.readlines()
+
+for p in paths:
+    q.put(target_url + p.strip())
+
+threads = []
+THREAD_COUNT = 50
+
+for _ in range(THREAD_COUNT):
+    t = threading.Thread(target=worker)
+    t.start()
+    threads.append(t)
+
+q.join()
+
+for _ in threads:
+    q.put(None)
+
+for t in threads:
+    t.join()
+
+if good_list:
+    print("\nFOUND:")
+    for u in good_list:
+        print(u)
+else:
+    print("NOT FOUND")
