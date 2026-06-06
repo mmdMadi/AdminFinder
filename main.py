@@ -3,7 +3,9 @@ from colorama import Fore, Style, init
 import os
 import time
 
-userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0'
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0"
+}
 try: 
     init()
 
@@ -46,7 +48,7 @@ try:
         url = target_url + path
 
         try:
-            req = get(url, timeout=8,userAgent=userAgent)
+            req = get(url, timeout=8,headers=headers)
             status_code = req.status_code
 
             if status_code == 200:
