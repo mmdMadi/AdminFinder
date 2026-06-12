@@ -24,13 +24,13 @@ AdminFinder is a security testing tool that helps identify potential admin pages
 
 1. Clone this repository:
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/mmdMadi/AdminFinder
 cd AdminFinder
 ```
 
 2. Install required dependencies:
 ```bash
-pip install requests colorama
+pip install -r requirements.txt
 ```
 
 ## Usage
