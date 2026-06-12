@@ -81,7 +81,6 @@ banner = (
     f"██║     ██║██║ ╚████║██████╔╝███████╗██║  ██║\n"
     f"╚═╝     ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝\n"
     f"{Fore.MAGENTA}  ─── Admin Panel Discovery Tool ───\n"
-    f"{Fore.YELLOW}  -- made by connecting26 & mmdMadi --{Style.RESET_ALL}\n"
 )
 print(banner)
 
