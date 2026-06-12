@@ -1,84 +1,124 @@
-from requests import get
+from requests import Session
 from colorama import Fore, Style, init
-import os
-import time
+import threading
+from queue import Queue
+import random
+import sys
+
+init()
+
+headers = {
+    "Connection": "close"
+}
+
+session = Session()
+session.headers.update(headers)
+
+try:
+    with open("user_agents.txt", "r", encoding="utf-8") as f:
+        user_agents = [line.strip() for line in f if line.strip()]
+except FileNotFoundError:
+    print(Fore.RED + "Error: user_agents.txt not found in project root." + Style.RESET_ALL)
+    sys.exit(1)
+
+if not user_agents:
+    print(Fore.RED + "Error: user_agents.txt is empty." + Style.RESET_ALL)
+    sys.exit(1)
+
+print(Fore.CYAN + f"Loaded {len(user_agents)} user agents from user_agents.txt" + Style.RESET_ALL)
+
+good_list = []
+lock = threading.Lock()
+q = Queue()
 
 
-try: 
-    init()
-
-    good_list = []
-
-    # -------- banner --------
-    banner = r"""
-        ___      _           _         ______ _           _           
-    / _ \ ___| |__   ___ | |_ ___  |  ____(_)_ __   __| | ___ _ __ 
-    | | | / __| '_ \ / _ \| __/ _ \ | |__  | | '_ \ / _` |/ _ \ '__|
-    | |_| \__ \ | | | (_) | ||  __/ |  __| | | | | | (_| |  __/ |   
-    \___/|___/_| |_|\___/ \__\___| |_|    |_|_| |_|\__,_|\___|_|   
-
-                    ADMIN PAGE FINDER
-    """
-
-    print(Fore.CYAN + banner + Style.RESET_ALL)
-    time.sleep(5)
-    os.system('cls' if os.name == 'nt' else 'clear')
-    # ------------------------
-
-    target_url = input('enter target url : ')
-    target_url += '/' if not target_url.endswith('/') else ''
-
-    paths_file = open('wordlist.txt', 'r', encoding='UTF-8')
-    paths = paths_file.readlines()
-    paths_file.close()
-
-    clean_paths = []
-
-    for line in paths:
-        if line.strip() == '' or line.startswith('#'):
-            continue
-
-        line = line.strip().lstrip('/')
-        clean_paths.append(line)
+def get_random_user_agent():
+    return random.choice(user_agents)
 
 
-    for path in clean_paths:
-        url = target_url + path
+def check_url(url):
+    try:
+        user_agent = get_random_user_agent()
+        req = session.get(url, headers={"User-Agent": user_agent}, timeout=8)
+        status = req.status_code
 
-        try:
-            req = get(url, timeout=8)
-            status_code = req.status_code
-
-            if status_code == 200:
-                print(Fore.GREEN + f'tested url {url} and the status code is {status_code}')
+        with lock:
+            if status == 200:
+                print(Fore.GREEN + f"[200] {url}")
+                print(Fore.CYAN + f"      User-Agent: {user_agent}" + Style.RESET_ALL)
                 good_list.append(url)
             else:
-                print(Fore.RED + f'tested url {url} and the status code is {status_code}')
+                print(Fore.RED + f"[{status}] {url}")
+                print(Fore.BLUE + f"      User-Agent: {user_agent}" + Style.RESET_ALL)
 
-        except Exception as e:
-            print(Fore.YELLOW + f'error for {url} : {e}')
-
-
-    print(Style.RESET_ALL)
-
-    if len(good_list) > 0:
-        print(Fore.GREEN + f'\n[+] Found {len(good_list)} possible admin page(s):\n')
-
-        for url in good_list:
-            print(Fore.GREEN + f'[+] {url}')
-
-        # save to file
-        with open('./goods.txt', 'w', encoding='utf-8') as f:
-            for url in good_list:
-                f.write(url + '\n')
-
-        print(Fore.CYAN + '\n[+] All good URLs saved to ./goods.txt')
-
-    else:
-        print(Fore.RED + '\n[-] We couldn`t find any admin pages.')
-
-    input('\npress any key to exit')
+    except Exception as e:
+        with lock:
+            print(Fore.YELLOW + f"[ERR] {url} : {e}")
 
 
-except KeyboardInterrupt:
-    print(Fore.RED + 'the Application Stopped by the user .')
+def worker():
+    while True:
+        url = q.get()
+        if url is None:
+            break
+        check_url(url)
+        q.task_done()
+
+
+banner = (
+    f"{Fore.CYAN}{Style.BRIGHT}"
+    f" █████╗ ██████╗ ███╗   ███╗██╗███╗   ██╗\n"
+    f"██╔══██╗██╔══██╗████╗ ████║██║████╗  ██║\n"
+    f"███████║██║  ██║██╔████╔██║██║██╔██╗ ██║\n"
+    f"██╔══██║██║  ██║██║╚██╔╝██║██║██║╚██╗██║\n"
+    f"██║  ██║██████╔╝██║ ╚═╝ ██║██║██║ ╚████║\n"
+    f"╚═╝  ╚═╝╚═════╝ ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝\n"
+    f"{Fore.GREEN}"
+    f"███████╗██╗███╗   ██╗██████╗ ███████╗██████╗ \n"
+    f"██╔════╝██║████╗  ██║██╔══██╗██╔════╝██╔══██╗\n"
+    f"█████╗  ██║██╔██╗ ██║██║  ██║█████╗  ██████╔╝\n"
+    f"██╔══╝  ██║██║╚██╗██║██║  ██║██╔══╝  ██╔══██╗\n"
+    f"██║     ██║██║ ╚████║██████╔╝███████╗██║  ██║\n"
+    f"╚═╝     ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝\n"
+    f"{Fore.MAGENTA}  ─── Admin Panel Discovery Tool ───\n"
+    f"{Fore.YELLOW}  -- made by connecting26 & mmdMadi --{Style.RESET_ALL}\n"
+)
+print(banner)
+
+target_url = input("target url: ")
+THREAD_COUNT = int(input("enter number for threads : "))
+
+if not target_url.endswith("/"):
+    target_url += "/"
+
+with open("wordlist.txt", "r", encoding="utf-8") as f:
+    paths = f.readlines()
+
+for p in paths:
+    q.put(target_url + p.strip())
+
+threads = []
+
+
+for _ in range(THREAD_COUNT):
+    t = threading.Thread(target=worker)
+    t.start()
+    threads.append(t)
+
+q.join()
+
+for _ in threads:
+    q.put(None)
+
+for t in threads:
+    t.join()
+
+if good_list:
+    print(Fore.GREEN + "\nFOUND:")
+    for u in good_list:
+        print(u)
+    with open("goodlist.txt", "w", encoding="utf-8") as f:
+        f.write("\n".join(good_list) + "\n")
+    print(Fore.GREEN + "Saved to goodlist.txt" + Style.RESET_ALL)
+else:
+    print("NOT FOUND")
