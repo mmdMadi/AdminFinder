@@ -63,8 +63,6 @@
 /dashboard
 /dashboard/login
 /dashboard/admin
-
-# Generic Login
 /login
 /login.php
 /login.html
@@ -86,8 +84,6 @@
 /user/login
 /customer/login
 /client/login
-
-# WordPress
 /wp-admin
 /wp-admin/
 /wp-login.php
@@ -99,42 +95,30 @@
 /wordpress/wp-login.php
 /cms/wp-admin
 /site/wp-admin
-
-# Joomla
 /administrator
 /administrator/index.php
 /administrator/login.php
 /joomla/administrator
-
-# Drupal
 /user
 /user/login
 /admin
 /admin/login
 /?q=admin
 /?q=user/login
-
-# Magento
 /admin
 /admin_1
 /backend
 /index.php/admin
 /adminpanel
 /magento/admin
-
-# OpenCart
 /admin
 /admin/index.php
 /opencart/admin
-
-# PrestaShop
 /admin-dev
 /admin123
 /administrator
 /admin
 /prestashop/admin
-
-# Laravel
 /admin
 /login
 /dashboard
@@ -142,19 +126,13 @@
 /telescope
 /nova
 /filament
-
-# Django
 /admin
 /admin/login
 /django/admin
-
-# Flask
 /admin
 /login
 /dashboard
 /flask-admin
-
-# ASP.NET
 /admin
 /Admin
 /Account/Login
@@ -162,27 +140,19 @@
 /manage
 /umbraco
 /elmah
-
-# Java / Spring
 /j_spring_security_check
 /admin/login.do
 /manager/html
 /host-manager/html
-
-# Node.js / Express
 /admin
 /api/admin
 /keystone
 /ghost
 /strapi/admin
-
-# Ruby on Rails
 /admin
 /users/sign_in
 /admin/login
 /rails/info/routes
-
-# phpMyAdmin / DB Panels
 /phpmyadmin
 /phpMyAdmin
 /pma
@@ -192,8 +162,6 @@
 /adminer.php
 /mysqladmin
 /sqlmanager
-
-# Hosting Panels
 /cpanel
 /webmail
 /whm
@@ -201,14 +169,8 @@
 :2083
 :2086
 :2087
-
-# DirectAdmin
 :2222
-
-# Plesk
 :8443
-
-# APIs / Docs
 /swagger
 /swagger/index.html
 /docs
@@ -217,8 +179,6 @@
 /api/swagger
 /graphql
 /graphiql
-
-# Cloud / DevOps
 /jenkins
 /portainer
 /kibana
@@ -227,21 +187,15 @@
 /prometheus
 /rabbitmq
 /actuator
-
-# Ecommerce
 /shop/admin
 /store/admin
 /cart/admin
 /checkout/admin
-
-# CMS Misc
 /cms
 /cmsadmin
 /cms/login
 /content/admin
 /content/login
-
-# Old / Legacy Panels
 /admin_old
 /admin-old
 /old/admin
@@ -250,14 +204,10 @@
 /dev/admin
 /staging/admin
 /beta/admin
-
-# File Managers
 /filemanager
 /elfinder
 /ckfinder
 /kcfinder
-
-# Common Sensitive Paths
 /server-status
 /server-info
 /phpinfo.php
@@ -266,8 +216,6 @@
 /install
 /setup
 /installer
-
-# Misc Variations
 /admin/home.php
 /admin/default.php
 /admin/main.php
